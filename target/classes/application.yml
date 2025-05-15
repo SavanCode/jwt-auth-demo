@@ -1,0 +1,13 @@
+server:
+  port: 8080    # 指定应用程序运行的端口号，这里设置为8080
+
+spring:
+  application:
+    name: jwt-auth-demo    # 指定应用程序的名称
+  main:
+    allow-circular-references: true
+    allow-bean-definition-overriding: true
+
+jwt:
+  secret: your-secret-key-here-should-be-very-long-and-secure    # JWT的密钥，用于签名和验证token
+  expiration: 86400000    # token的有效期，这里设置为24小时（以毫秒为单位）
