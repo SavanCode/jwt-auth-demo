@@ -126,6 +126,74 @@ GET /api/protected-resource
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 ```
 
+## Error Handling 错误处理
+
+The application implements a global exception handling mechanism to provide consistent error responses across the API.
+应用程序实现了全局异常处理机制，以提供一致的 API 错误响应。
+
+### Error Response Format 错误响应格式
+
+```json
+{
+    "timestamp": "2024-01-20T10:30:45.123",
+    "status": 401,
+    "error": "Invalid credentials",
+    "message": "Authentication failed",
+    "path": "/api/auth/login"
+}
+```
+
+### Handled Exceptions 已处理的异常
+
+1. **Authentication Errors 认证错误**
+   - `UsernameNotFoundException`: User not found (404)
+   - `BadCredentialsException`: Invalid credentials (401)
+   - JWT Related Exceptions JWT相关异常:
+     - `ExpiredJwtException`: Token has expired (401)
+     - `MalformedJwtException`: Invalid token format (401)
+     - `SignatureException`: Invalid token signature (401)
+
+2. **General Errors 一般错误**
+   - Unexpected server errors (500)
+   - Invalid request format (400)
+
+### Implementation 实现方式
+
+The error handling is implemented using Spring's `@RestControllerAdvice`:
+错误处理通过 Spring 的 `@RestControllerAdvice` 实现：
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(
+        UsernameNotFoundException ex, 
+        WebRequest request
+    ) {
+        // Error handling logic
+        // 错误处理逻辑
+    }
+    
+    // Other exception handlers
+    // 其他异常处理器
+}
+```
+
+### Error Response Class 错误响应类
+
+```java
+public class ErrorResponse {
+    private LocalDateTime timestamp; // 时间戳
+    private int status;             // HTTP状态码
+    private String error;           // 错误类型
+    private String message;         // 错误消息
+    private String path;            // 请求路径
+    
+    // Constructor and getters/setters
+    // 构造函数和getter/setter方法
+}
+```
+
 ## Project Structure 项目结构
 
 ```
@@ -140,6 +208,9 @@ jwt-auth-demo/
 │   │   └── AuthResponse.java            # 认证响应DTO
 │   ├── entity/
 │   │   └── User.java                    # 用户实体
+│   ├── exception/                        # 异常处理包
+│   │   ├── GlobalExceptionHandler.java   # 全局异常处理器
+│   │   └── ErrorResponse.java           # 错误响应类
 │   ├── security/
 │   │   └── JwtAuthenticationFilter.java  # JWT认证过滤器
 │   ├── service/
@@ -207,32 +278,6 @@ jwt-auth-demo/
   安全配置可通过 application.yml 自定义
 - Token expiration and other JWT settings can be configured as needed
   令牌过期时间和其他 JWT 设置可根据需要配置
-
-## 项目结构
-
-```
-jwt-auth-demo/
-├── src/main/java/com/example/jwtauth/
-│   ├── config/
-│   │   └── SecurityConfig.java           # Spring Security配置
-│   ├── controller/
-│   │   └── AuthController.java          # 认证控制器
-│   ├── dto/
-│   │   ├── AuthRequest.java             # 认证请求DTO
-│   │   └── AuthResponse.java            # 认证响应DTO
-│   ├── entity/
-│   │   └── User.java                    # 用户实体
-│   ├── security/
-│   │   └── JwtAuthenticationFilter.java  # JWT认证过滤器
-│   ├── service/
-│   │   ├── UserService.java             # 用户服务接口
-│   │   └── impl/
-│   │       └── UserServiceImpl.java     # 用户服务实现
-│   ├── util/
-│   │   └── JwtUtil.java                 # JWT工具类
-│   └── JwtAuthApplication.java          # 应用程序入口
-└── pom.xml                              # Maven配置文件
-```
 
 ## JWT认证流程
 
