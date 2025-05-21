@@ -30,6 +30,7 @@
 package com.example.jwtauth.service.impl;
 
 import com.example.jwtauth.entity.User;
+import com.example.jwtauth.repository.UserRepository;
 import com.example.jwtauth.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,12 +38,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * UserService的实现类
@@ -53,20 +49,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder passwordEncoder;
-    
-    // 使用ConcurrentHashMap存储用户信息，确保线程安全
-    private final Map<String, User> users = new ConcurrentHashMap<>();
-    // 用于生成用户ID
-    private final AtomicLong userIdSequence = new AtomicLong(1);
+    private final UserRepository userRepository;
 
     /**
      * 注册新用户
      */
     @Override
     public User registerUser(User user) {
-        // 设置用户ID
-        user.setId(userIdSequence.getAndIncrement());
-        
         // 加密密码
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         
@@ -76,9 +65,7 @@ public class UserServiceImpl implements UserService {
         }
         
         // 存储用户信息
-        users.put(user.getUsername(), user);
-        
-        return user;
+        return userRepository.save(user);
     }
 
     /**
@@ -86,7 +73,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public boolean existsByUsername(String username) {
-        return users.containsKey(username);
+        return userRepository.existsByUsername(username);
     }
 
     /**
@@ -94,7 +81,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User findByUsername(String username) {
-        return users.get(username);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 
     /**
@@ -102,11 +90,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = users.get(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
-        return user;
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 
     // 初始化一些测试用户

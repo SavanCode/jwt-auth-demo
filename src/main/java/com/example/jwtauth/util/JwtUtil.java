@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,10 +34,17 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private Long expiration;
 
+    private Key signingKey;
+
+    @PostConstruct
+    public void init() {
+        // Generate a secure key using Keys.secretKeyFor
+        this.signingKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    }
+
     // 用于签名JWT的密钥
     private Key getSigningKey() {
-        byte[] keyBytes = secret.getBytes();
-        return Keys.hmacShaKeyFor(keyBytes);
+        return signingKey;
     }
 
     // 从token中提取用户名

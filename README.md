@@ -126,6 +126,59 @@ GET /api/protected-resource
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 ```
 
+### 3. Test Endpoints 测试端点
+```http
+GET /test
+Authorization: Bearer <your-jwt-token>
+Response: "API is working!"
+```
+
+## Docker Setup Docker 设置
+
+### 1. Prerequisites 前置条件
+- Docker and Docker Compose installed
+- 安装 Docker 和 Docker Compose
+
+### 2. Configuration 配置
+The application uses Docker Compose to manage two services:
+应用程序使用 Docker Compose 管理两个服务：
+
+1. **Spring Boot Application (jwt-auth-app)**
+   - Port: 8080
+   - Environment: prod
+   - Dependencies: Maven, JDK 17
+
+2. **PostgreSQL Database (postgres)**
+   - Port: 5432
+   - Database: jwtauth
+   - Username: postgres
+   - Password: postgres
+
+### 3. Running the Application 运行应用程序
+```bash
+# Build and start the containers
+# 构建并启动容器
+docker-compose up --build -d
+
+# View logs
+# 查看日志
+docker logs jwt-auth-demo-jwt-auth-app-1
+
+# Stop the containers
+# 停止容器
+docker-compose down
+```
+
+### 4. Database Management 数据库管理
+You can use pgAdmin to manage the PostgreSQL database:
+你可以使用 pgAdmin 管理 PostgreSQL 数据库：
+
+- Host: localhost
+- Port: 5432
+- Database: jwtauth
+- Username: postgres
+- Password: postgres
+
 ## Error Handling 错误处理
 
 The application implements a global exception handling mechanism to provide consistent error responses across the API.
@@ -202,7 +255,8 @@ jwt-auth-demo/
 │   ├── config/
 │   │   └── SecurityConfig.java           # Spring Security配置
 │   ├── controller/
-│   │   └── AuthController.java          # 认证控制器
+│   │   ├── AuthController.java          # 认证控制器
+│   │   └── TestController.java          # 测试控制器
 │   ├── dto/
 │   │   ├── AuthRequest.java             # 认证请求DTO
 │   │   └── AuthResponse.java            # 认证响应DTO
@@ -220,6 +274,7 @@ jwt-auth-demo/
 │   ├── util/
 │   │   └── JwtUtil.java                 # JWT工具类
 │   └── JwtAuthApplication.java          # 应用程序入口
+├── docker-compose.yml                   # Docker Compose配置
 └── pom.xml                              # Maven配置文件
 ```
 
@@ -231,10 +286,10 @@ jwt-auth-demo/
 2. Set up your database configuration
    设置数据库配置
 
-3. Run the application
-   运行应用程序：
+3. Run the application using Docker
+   使用 Docker 运行应用程序：
    ```bash
-   mvn spring-boot:run
+   docker-compose up --build -d
    ```
 
 4. Test the API endpoints
@@ -248,8 +303,8 @@ jwt-auth-demo/
    curl -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" \
    -d '{"username":"user1","password":"password123"}'
 
-   # Access protected resource 访问受保护资源
-   curl -X GET http://localhost:8080/api/protected-resource -H "Authorization: Bearer YOUR_TOKEN_HERE"
+   # Test protected endpoint 测试受保护端点
+   curl -H "Authorization: Bearer <your-jwt-token>" http://localhost:8080/test
    ```
 
 ## Production Considerations 生产环境注意事项
